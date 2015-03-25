@@ -8,8 +8,8 @@
 
 # these will probably work if Lua has been installed globally
 LUA= /usr
-LUAINC= $(LUA)/include
-LUALIB= $(LUA)/lib
+LUAINC= $(LUA)/include/lua5.1
+LUALIB= $(LUA)/lib/lua5.1
 LUABIN= $(LUA)/bin
 
 # probably no need to change anything below here

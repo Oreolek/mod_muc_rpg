@@ -3,10 +3,9 @@
 -- based on mod_muc_intercom by Kim Alvefur <zash@zash.se>
 
 local host_session = prosody.hosts[module.host];
-local st_msg = require "util.stanza".message;
 local jid = require "util.jid";
-local random=require"random"
-r=random.new(os.time())
+--local random = require"random"
+--r=random.new(os.time())
 
 local function get_room_by_jid(mod_muc, jid)
 	if mod_muc.get_room_by_jid then
@@ -16,13 +15,13 @@ local function get_room_by_jid(mod_muc, jid)
 	end
 end
 
-function roll (times, sides, bonus)
+local function roll (times, sides, bonus)
   local result = {}
   result.dice = {}
   bonus = bonus or 0
 
   for i = 1, times do
-    result.dice[#result.dice + 1] = r(sides)
+    result.dice[#result.dice + 1] = math.random(sides)
   end
 
   result.bonus = bonus
@@ -30,7 +29,7 @@ function roll (times, sides, bonus)
   return result
 end
 
-function parseroll(message)
+local function parseroll(message)
   local result = {}
   result.times = 1
   result.sides = 20
@@ -60,29 +59,35 @@ function parseroll(message)
   end
 end
 
-function check_message(data)
-	local origin, stanza = data.origin, data.stanza;
-	local mod_muc = host_session.muc;
+local function check_message(data)
+	local stanza = data.stanza;
+	local body = stanza:get_child("body");
+
+  if not body then return; end -- No body, like topic changes
+  if not (stanza.name == "message" and tostring(stanza.attr.type) == "groupchat") then return; end
 	if not mod_muc then return; end
 
-	local this_room = get_room_by_jid(mod_muc, stanza.attr.to);
-	if not this_room then return; end -- no such room
-
-	local from_room_jid = this_room._jid_nick[stanza.attr.from];
-	if not from_room_jid then return; end -- no such nick
-
-	local from_room, from_host, from_nick = jid.split(from_room_jid);
-
-	local body = stanza:get_child("body");
-	if not body then return; end -- No body, like topic changes
+	local mod_muc = host_session.muc;
+  data.stanza.body = "hello"
 	body = body and body:get_text();
 	if not string.match(body, '^%s*/roll%s') then return; end -- No command
 	local message = body:match("^@([^:]+):(.*)");
 	if not message then return; end
 
-  local forward_stanza = st_msg({from = sender, to = this_room, type = "groupchat"}, message);
+  stanza.body = body .. " rolled: "
+  local result = roll(parseroll(message))
 
-	this_room:broadcast_message(forward_stanza);
+  local total = 0
+  for i = 1, #result.dice do
+    if i == 1 then
+      stanza.body = stanza.body .. result.dice[i]
+    else
+      stanza.body = stanza.body .. "," .. result.dice[i]
+    end
+    total = total + result.dice[i]
+  end
+  total = total + result.bonus
+  data.stanza.body = stanza.body .. ", total: " .. total
 end
 
 module:hook("message/bare", check_message, 10);

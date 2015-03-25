@@ -11,6 +11,7 @@ The syntax is this:
 The `<times>` bit is optional (default 1), the `d` letter is optional too if `times` = 1 and `bonus` = 0.
 
 Example:
+
     /roll 1d4
     /roll 2d5-2
     /roll d20+3
@@ -22,6 +23,6 @@ This module uses Mersenne-Twister random-number library for better random number
 
 You can get the newest library version [here.](http://www.math.sci.hiroshima-u.ac.jp/~m-mat/MT/MT2002/emt19937ar.html)
 
-The library uses BSD license so it's included here (for Lua 5.2). Just compile the `random.so` and put it in plugin directory.
+The library uses BSD license so it's included here (for Lua 5.2). Just compile the `random.so` and put it in `/usr/lib/prosody` or `/usr/lib/lua/5.1` directory.
 
 Then, drop the module to Prosody dir (usually `/usr/lib/prosody/modules`) and turn it on in your config.
